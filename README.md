@@ -40,4 +40,6 @@
 
 ## 📄 Licence
 
-Distribué sous licence MIT. Voir [LICENSE](LICENSE).
+- Distribué sous licence MIT. Voir [LICENSE](LICENSE).
++ Ce projet est protégé par droits d’auteur. Voir [LICENSE](LICENSE).
+
