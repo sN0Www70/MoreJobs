@@ -1,0 +1,10 @@
+modLoader="javafml"
+loaderVersion="[36,)"
+license="MIT"
+
+[[mods]]
+modId="morejobs"
+version="1.0"
+displayName="More Jobs"
+description='Mod de skills métiers via commandes.'
+authors="Snow"
