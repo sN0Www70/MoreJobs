@@ -90,9 +90,8 @@ public class JobDataStorage {
 
     public void setActive(JobType job) {
         if (job.isSecret()) {
-            activeJobs.add(job.getName()); // Ajoute sans clear
+            activeJobs.add(job.getName());
         } else {
-            // Ne garder que les jobs secrets, puis ajouter le nouveau principal
             activeJobs.removeIf(name -> !JobType.fromName(name).isSecret());
             activeJobs.add(job.getName());
         }
@@ -123,14 +122,14 @@ public class JobDataStorage {
         return uuid;
     }
 
-    // === NOUVELLES MÉTHODES POUR SUPPORT AUTO-UNLOCK ===
 
     public boolean hasJob(JobType job) {
         return unlockedJobs.contains(job.getName()) || activeJobs.contains(job.getName());
     }
 
     public void addJob(JobType job) {
-        unlockJob(job); // ajoute à unlockedJobs
-        setActive(job); // active correctement le job (gère secret vs principal)
+        unlockJob(job);
+        setActive(job);
+        save();
     }
 }

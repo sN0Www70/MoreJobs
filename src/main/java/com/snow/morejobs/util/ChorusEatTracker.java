@@ -6,9 +6,6 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Items;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent.ItemPickupEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent.ItemCraftedEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -37,6 +34,7 @@ public class ChorusEatTracker {
             JobDataStorage data = JobDataStorage.get(player);
             if (!data.hasJob(JobType.ALIEN)) {
                 data.addJob(JobType.ALIEN);
+                data.save();
                 player.sendMessage(new StringTextComponent("👽 Nouveau métier secret débloqué : §e" + JobType.ALIEN.getDisplayName()), uuid);
             }
         }

@@ -55,7 +55,7 @@ public class MadScientistCommand {
                         return 0;
                     }
 
-                    boolean success = MadScientistSkills.mutateNearbyPlayer(player);
+                    boolean success = MadScientistSkills.spawnCloneNearby(player);
                     if (success) {
                         CooldownManager.setCooldown(player, "mutate", 3 * 60_000);
                         return 1;
@@ -78,7 +78,7 @@ public class MadScientistCommand {
                                 return 0;
                             }
 
-                            boolean success = MadScientistSkills.mutateTarget(player, target);
+                            boolean success = MadScientistSkills.spawnClone(player, target);
                             if (success) {
                                 CooldownManager.setCooldown(player, "mutate", 3 * 60_000);
                                 return 1;

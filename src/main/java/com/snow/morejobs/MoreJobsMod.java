@@ -6,11 +6,12 @@ import com.snow.morejobs.gui.architect.ArchitectShopContainer;
 import com.snow.morejobs.gui.bartender.BartenderShopContainer;
 import com.snow.morejobs.jobs.JobType;
 import com.snow.morejobs.network.NetworkHandler;
+import com.snow.morejobs.skills.MadScientistSkills;
 import com.snow.morejobs.util.EconomyUtils;
-import com.snow.morejobs.util.JobUnlockFunctionHandler;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.RegistryEvent;
@@ -34,9 +35,11 @@ public class MoreJobsMod {
 
         MinecraftForge.EVENT_BUS.addListener(this::onCommandRegister);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
+        MinecraftForge.EVENT_BUS.addListener(this::onWorldTick); // 👈 Ajout ici
     }
 
     private void setup(FMLCommonSetupEvent event) {
+
     }
 
     private void registerContainers(RegistryEvent.Register<ContainerType<?>> event) {
@@ -66,10 +69,6 @@ public class MoreJobsMod {
     private void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
 
-        for (ServerPlayerEntity player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
-            JobUnlockFunctionHandler.handle(player); // ← NEW pour débloquer métiers via tag
-        }
-
         salaryTimer++;
         if (salaryTimer >= 12000) {
             salaryTimer = 0;
@@ -86,5 +85,13 @@ public class MoreJobsMod {
                 }
             }
         }
+    }
+
+    private void onWorldTick(TickEvent.WorldTickEvent event) {
+        if (!(event.world instanceof ServerWorld)) return;
+        if (event.phase != TickEvent.Phase.END) return;
+
+        ServerWorld world = (ServerWorld) event.world;
+        MadScientistSkills.tick(world); // 👈 Appel du tick de la zone d’effet
     }
 }

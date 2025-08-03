@@ -24,7 +24,7 @@ public enum JobType {
     // Jobs secrets (aucun lien LP)
     ALIEN("alien", "Alien", true, null),
     FATETELLER("fateteller", "Voyant", true, null),
-    MAD_SCIENTIST("madscientist", "Savant fou", true, null),
+    MAD_SCIENTIST("madscientist", "Savant fou", false, null),
     THIEF("thief", "Voleur", true, null),
 
     NONE("none", "Aucun", false, "none");
