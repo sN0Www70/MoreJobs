@@ -27,9 +27,6 @@ public class MinerSkills {
         JobDataStorage data = JobDataStorage.get(player);
         data.addXp(JobType.MINER, 15);
         data.save();
-
-        EconomyUtils.giveMoney(player, 15);
-        player.sendMessage(new StringTextComponent("✅ +15 XP & Chelous"), player.getUUID());
     }
 
     public static void toggleEchoLocate(ServerPlayerEntity player, boolean enable) {
@@ -56,9 +53,6 @@ public class MinerSkills {
             JobDataStorage data = JobDataStorage.get(player);
             data.addXp(JobType.MINER, 10);
             data.save();
-
-            EconomyUtils.giveMoney(player, 10);
-            player.sendMessage(new StringTextComponent("✅ +10 XP & Chelous"), player.getUUID());
         } else {
             player.sendMessage(new StringTextComponent("❌ Aucun minerai proche."), player.getUUID());
         }

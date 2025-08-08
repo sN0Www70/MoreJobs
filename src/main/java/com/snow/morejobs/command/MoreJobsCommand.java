@@ -21,7 +21,14 @@ public class MoreJobsCommand {
                 })
 
                 .then(Commands.literal("assignjob")
-                        .requires(cs -> cs.hasPermission(2)) // OP/Maire
+                        .requires(cs -> {
+                            if (cs.hasPermission(2)) return true;
+                            if (cs.getEntity() instanceof ServerPlayerEntity) {
+                                ServerPlayerEntity player = (ServerPlayerEntity) cs.getEntity();
+                                return com.snow.morejobs.data.JobDataStorage.get(player).hasActive(com.snow.morejobs.jobs.JobType.MAYOR);
+                            }
+                            return false;
+                        })
                         .then(Commands.argument("job", StringArgumentType.word())
                                 .then(Commands.argument("player", StringArgumentType.word())
                                         .executes(ctx -> {
@@ -29,6 +36,8 @@ public class MoreJobsCommand {
                                             String playerName = StringArgumentType.getString(ctx, "player");
                                             return assignJob(ctx.getSource(), jobName, playerName);
                                         }))))
+
+
 
                 .then(Commands.literal("jobquit")
                         .requires(cs -> cs.getEntity() instanceof ServerPlayerEntity)
@@ -46,7 +55,14 @@ public class MoreJobsCommand {
                             return showInfo(ctx.getSource(), player);
                         })
                         .then(Commands.argument("player", StringArgumentType.word())
-                                .requires(cs -> cs.hasPermission(2))
+                                .requires(cs -> {
+                                    if (cs.hasPermission(2)) return true;
+                                    if (cs.getEntity() instanceof ServerPlayerEntity) {
+                                        ServerPlayerEntity player = (ServerPlayerEntity) cs.getEntity();
+                                        return com.snow.morejobs.data.JobDataStorage.get(player).hasActive(com.snow.morejobs.jobs.JobType.MAYOR);
+                                    }
+                                    return false;
+                                })
                                 .executes(ctx -> {
                                     String name = StringArgumentType.getString(ctx, "player");
                                     MinecraftServer server = ctx.getSource().getServer();
@@ -58,6 +74,7 @@ public class MoreJobsCommand {
                                         return 0;
                                     }
                                 })))
+
 
                 .executes(ctx -> {
                     ctx.getSource().sendSuccess(new StringTextComponent("§6=== MoreJobs - Commandes disponibles ==="), false);
@@ -94,14 +111,22 @@ public class MoreJobsCommand {
 
         JobDataStorage data = JobDataStorage.get(player);
         data.setActive(job);
+        data.unlockJob(job);
         data.save();
 
         if (job.hasLuckPermsGroup()) {
             String cmd = "lp user " + player.getName().getString() + " parent add " + job.getLuckPermsGroup();
-            source.getServer().getCommands().performCommand(
-                    source.getServer().createCommandSourceStack().withSuppressedOutput(),
-                    cmd
-            );
+            System.out.println("[MoreJobs] LP → " + cmd);
+
+            try {
+                Class<?> bukkitClass = Class.forName("org.bukkit.Bukkit");
+                Object server = bukkitClass.getMethod("getServer").invoke(null);
+                Object console = server.getClass().getMethod("getConsoleSender").invoke(server);
+                server.getClass().getMethod("dispatchCommand", Class.forName("org.bukkit.command.CommandSender"), String.class)
+                        .invoke(server, console, cmd);
+            } catch (Throwable e) {
+                System.err.println("[MoreJobs] Erreur LP Bukkit (assign): " + e.getMessage());
+            }
         }
 
         source.sendSuccess(new StringTextComponent("Job " + job.getDisplayName() + " attribué à " + playerName + "."), true);
@@ -123,15 +148,24 @@ public class MoreJobsCommand {
 
         if (job.hasLuckPermsGroup()) {
             String cmd = "lp user " + player.getName().getString() + " parent remove " + job.getLuckPermsGroup();
-            player.getServer().getCommands().performCommand(
-                    player.getServer().createCommandSourceStack().withSuppressedOutput(),
-                    cmd
-            );
+            System.out.println("[MoreJobs] LP → " + cmd);
+
+            try {
+                Class<?> bukkitClass = Class.forName("org.bukkit.Bukkit");
+                Object server = bukkitClass.getMethod("getServer").invoke(null);
+                Object console = server.getClass().getMethod("getConsoleSender").invoke(server);
+                server.getClass().getMethod("dispatchCommand", Class.forName("org.bukkit.command.CommandSender"), String.class)
+                        .invoke(server, console, cmd);
+            } catch (Throwable e) {
+                System.err.println("[MoreJobs] Erreur LP Bukkit (quit): " + e.getMessage());
+            }
+
         }
 
         player.sendMessage(new StringTextComponent("Tu as quitté le job : " + job.getDisplayName()), player.getUUID());
         return 1;
     }
+
 
     private static int showInfo(CommandSource source, ServerPlayerEntity player) {
         JobDataStorage data = JobDataStorage.get(player);

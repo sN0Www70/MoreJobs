@@ -75,6 +75,7 @@ public class MoreJobsMod {
         BartenderCommand.register(event.getDispatcher());
         FateTellerCommand.register(event.getDispatcher());
         MadScientistCommand.register(event.getDispatcher());
+        MayorCommand.register(event.getDispatcher());
     }
 
     private void onServerTick(TickEvent.ServerTickEvent event) {
