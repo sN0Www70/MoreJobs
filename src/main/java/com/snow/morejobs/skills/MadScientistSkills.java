@@ -2,7 +2,6 @@ package com.snow.morejobs.skills;
 
 import com.snow.morejobs.data.JobDataStorage;
 import com.snow.morejobs.jobs.JobType;
-import com.snow.morejobs.util.FakePlayerUtil;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.play.server.SSpawnParticlePacket;
 import net.minecraft.particles.ParticleTypes;
@@ -96,33 +95,5 @@ public class MadScientistSkills {
             case "nausea": return new EffectInstance(Effects.CONFUSION, 40, 0);
             default: return null;
         }
-    }
-
-    public static boolean spawnCloneNearby(ServerPlayerEntity player) {
-        ServerWorld world = (ServerWorld) player.level;
-        List<ServerPlayerEntity> targets = world.getEntitiesOfClass(ServerPlayerEntity.class,
-                player.getBoundingBox().inflate(6), p -> !p.getUUID().equals(player.getUUID()));
-
-        if (targets.isEmpty()) {
-            player.sendMessage(new StringTextComponent("❌ Aucun joueur à cloner."), player.getUUID());
-            return false;
-        }
-
-        ServerPlayerEntity target = targets.get(world.random.nextInt(targets.size()));
-        return spawnClone(player, target);
-    }
-
-    public static boolean spawnClone(ServerPlayerEntity caster, ServerPlayerEntity target) {
-        ServerWorld world = (ServerWorld) caster.level;
-
-        FakePlayerUtil.spawnClone(world, target);
-
-        caster.sendMessage(new StringTextComponent("🧬 Clone de " + target.getName().getString() + " généré pour 30 minutes."), caster.getUUID());
-
-        JobDataStorage data = JobDataStorage.get(caster);
-        data.addXp(JobType.MAD_SCIENTIST, 5);
-        data.save();
-
-        return true;
     }
 }

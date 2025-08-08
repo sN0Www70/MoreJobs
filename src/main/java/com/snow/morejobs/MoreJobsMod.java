@@ -8,15 +8,18 @@ import com.snow.morejobs.jobs.JobType;
 import com.snow.morejobs.network.NetworkHandler;
 import com.snow.morejobs.skills.MadScientistSkills;
 import com.snow.morejobs.util.EconomyUtils;
+
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.server.ServerWorld;
+
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
@@ -27,22 +30,29 @@ public class MoreJobsMod {
     private int salaryTimer = 0;
 
     public MoreJobsMod() {
+        // Register networking
         NetworkHandler.register();
 
+        // Register mod elements (containers, blocks, etc.)
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::clientSetup);
+
+        // Event handlers
         FMLJavaModLoadingContext.get().getModEventBus()
                 .addGenericListener(ContainerType.class, this::registerContainers);
-
         MinecraftForge.EVENT_BUS.addListener(this::onCommandRegister);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
-        MinecraftForge.EVENT_BUS.addListener(this::onWorldTick); // 👈 Ajout ici
+        MinecraftForge.EVENT_BUS.addListener(this::onWorldTick);
     }
 
     private void setup(FMLCommonSetupEvent event) {
+    }
 
+    private void clientSetup(FMLClientSetupEvent event) {
     }
 
     private void registerContainers(RegistryEvent.Register<ContainerType<?>> event) {
+        // Custom GUI containers
         ArchitectShopContainer.TYPE = new ContainerType<>((windowId, inv) -> new ArchitectShopContainer(windowId, inv.player));
         ArchitectShopContainer.TYPE.setRegistryName("morejobs", "architect_shop");
         event.getRegistry().register(ArchitectShopContainer.TYPE);
@@ -53,6 +63,7 @@ public class MoreJobsMod {
     }
 
     private void onCommandRegister(RegisterCommandsEvent event) {
+        // All job commands
         MoreJobsCommand.register(event.getDispatcher());
         HunterCommand.register(event.getDispatcher());
         FarmerCommand.register(event.getDispatcher());
@@ -70,7 +81,7 @@ public class MoreJobsMod {
         if (event.phase != TickEvent.Phase.END) return;
 
         salaryTimer++;
-        if (salaryTimer >= 12000) {
+        if (salaryTimer >= 12000) { // 10 minutes (real-time)
             salaryTimer = 0;
 
             for (ServerPlayerEntity player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
@@ -92,6 +103,6 @@ public class MoreJobsMod {
         if (event.phase != TickEvent.Phase.END) return;
 
         ServerWorld world = (ServerWorld) event.world;
-        MadScientistSkills.tick(world); // 👈 Appel du tick de la zone d’effet
+        MadScientistSkills.tick(world);
     }
 }

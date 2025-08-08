@@ -40,52 +40,5 @@ public class MadScientistCommand {
                         })
                 )
         );
-
-        dispatcher.register(Commands.literal("mutate")
-                .executes(ctx -> {
-                    ServerPlayerEntity player = ctx.getSource().getPlayerOrException();
-                    if (!JobDataStorage.get(player).hasActive(JobType.MAD_SCIENTIST)) {
-                        player.sendMessage(new StringTextComponent("❌ Tu n'es pas scientifique."), player.getUUID());
-                        return 0;
-                    }
-
-                    if (CooldownManager.isOnCooldown(player, "mutate")) {
-                        long sec = CooldownManager.getRemaining(player, "mutate") / 1000;
-                        player.sendMessage(new StringTextComponent("⏳ Cooldown : " + sec + "s"), player.getUUID());
-                        return 0;
-                    }
-
-                    boolean success = MadScientistSkills.spawnCloneNearby(player);
-                    if (success) {
-                        CooldownManager.setCooldown(player, "mutate", 3 * 60_000);
-                        return 1;
-                    }
-                    return 0;
-                })
-                .then(Commands.argument("target", EntityArgument.player())
-                        .executes(ctx -> {
-                            ServerPlayerEntity player = ctx.getSource().getPlayerOrException();
-                            ServerPlayerEntity target = EntityArgument.getPlayer(ctx, "target");
-
-                            if (!JobDataStorage.get(player).hasActive(JobType.MAD_SCIENTIST)) {
-                                player.sendMessage(new StringTextComponent("❌ Tu n'es pas scientifique."), player.getUUID());
-                                return 0;
-                            }
-
-                            if (CooldownManager.isOnCooldown(player, "mutate")) {
-                                long sec = CooldownManager.getRemaining(player, "mutate") / 1000;
-                                player.sendMessage(new StringTextComponent("⏳ Cooldown : " + sec + "s"), player.getUUID());
-                                return 0;
-                            }
-
-                            boolean success = MadScientistSkills.spawnClone(player, target);
-                            if (success) {
-                                CooldownManager.setCooldown(player, "mutate", 3 * 60_000);
-                                return 1;
-                            }
-                            return 0;
-                        })
-                )
-        );
     }
 }
