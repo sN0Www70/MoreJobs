@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "morejobs:block/bank_chest", "y": 0 },
+    "facing=south": { "model": "morejobs:block/bank_chest", "y": 180 },
+    "facing=west":  { "model": "morejobs:block/bank_chest", "y": 270 },
+    "facing=east":  { "model": "morejobs:block/bank_chest", "y": 90 }
+  }
+}

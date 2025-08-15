@@ -1,0 +1,12 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "morejobs:block/bank_chest_topbottom",
+    "up": "morejobs:block/bank_chest_topbottom",
+    "north": "morejobs:block/bank_chest_front",
+    "south": "morejobs:block/bank_chest_side",
+    "west": "morejobs:block/bank_chest_side",
+    "east": "morejobs:block/bank_chest_side",
+    "particle": "morejobs:block/bank_chest_sides"
+  }
+}

@@ -18,8 +18,13 @@ public class CooldownOverlay {
 
     private static final int BAR_WIDTH = 60;
     private static final int BAR_HEIGHT = 4;
-    private static final int BAR_SPACING = 8;
-    private static final int MARGIN_FROM_HOTBAR = 12;
+
+    // Espacement entre deux barres verticales
+    private static final int VERTICAL_SPACING = 14;
+
+    // Marges pour le coin haut-gauche
+    private static final int MARGIN_LEFT = 8;
+    private static final int MARGIN_TOP  = 8;
 
     @SubscribeEvent
     public static void onRenderOverlay(RenderGameOverlayEvent.Post event) {
@@ -32,24 +37,22 @@ public class CooldownOverlay {
         Map<String, Long> cooldowns = ClientCooldownManager.getCooldowns();
         if (cooldowns == null || cooldowns.isEmpty()) return;
 
-        int screenWidth = event.getWindow().getGuiScaledWidth();
-        int screenHeight = event.getWindow().getGuiScaledHeight();
         long now = System.currentTimeMillis();
 
+        // Compte les cooldowns actifs
         int activeCooldowns = 0;
         for (long endTime : cooldowns.values()) {
             if (endTime > now) activeCooldowns++;
         }
         if (activeCooldowns == 0) return;
 
-        int totalWidth = activeCooldowns * (BAR_WIDTH + BAR_SPACING) - BAR_SPACING;
-        int startX = (screenWidth - totalWidth) / 2;
-        int y = screenHeight - 22 - MARGIN_FROM_HOTBAR;
-
         FontRenderer font = mc.font;
         MatrixStack matrixStack = event.getMatrixStack();
 
-        int index = 0;
+        // Point de départ en HAUT GAUCHE
+        int x = MARGIN_LEFT;
+        int y = MARGIN_TOP;
+
         for (Map.Entry<String, Long> entry : cooldowns.entrySet()) {
             String skill = entry.getKey();
             long endTime = entry.getValue();
@@ -57,10 +60,13 @@ public class CooldownOverlay {
             if (remaining <= 0) continue;
 
             long totalDuration = ClientCooldownManager.getDuration(skill);
+            if (totalDuration <= 0) totalDuration = 1; // garde-fou
             float progress = 1.0f - ((float) remaining / totalDuration);
-            int x = startX + (index * (BAR_WIDTH + BAR_SPACING));
 
-            AbstractGui.fill(matrixStack, x, y, x + BAR_WIDTH, y + BAR_HEIGHT, 0x88333333); // fond
+            // Fond
+            AbstractGui.fill(matrixStack, x, y, x + BAR_WIDTH, y + BAR_HEIGHT, 0x88333333);
+
+            // Progression
             int progressWidth = (int) (BAR_WIDTH * progress);
             if (progressWidth > 0) {
                 AbstractGui.fill(matrixStack, x, y, x + progressWidth, y + BAR_HEIGHT, 0xFF00AA00);
@@ -72,27 +78,29 @@ public class CooldownOverlay {
             AbstractGui.fill(matrixStack, x - 1, y, x, y + BAR_HEIGHT, 0x66FFFFFF);
             AbstractGui.fill(matrixStack, x + BAR_WIDTH, y, x + BAR_WIDTH + 1, y + BAR_HEIGHT, 0x66FFFFFF);
 
-            // Nom du skill
+            // Nom du skill (au-dessus de la barre)
             String displayName = skill.length() > 6 ? skill.substring(0, 6) : skill;
             matrixStack.pushPose();
             matrixStack.scale(0.6f, 0.6f, 1.0f);
             int textWidth = font.width(displayName);
-            font.drawShadow(matrixStack, displayName,
-                    (x + (BAR_WIDTH - textWidth * 0.6f) / 2) / 0.6f,
-                    (y - 8) / 0.6f, 0xCCCCCC);
+            // On convertit les coords pour l'échelle
+            float nameDrawX = (x + (BAR_WIDTH - (int)(textWidth * 0.6f)) / 2f) / 0.6f;
+            float nameDrawY = (y - 8) / 0.6f;
+            font.drawShadow(matrixStack, displayName, nameDrawX, nameDrawY, 0xCCCCCC);
             matrixStack.popPose();
 
-            // Temps restant
+            // Temps restant (sous la barre)
             String timeText = formatTimeShort(remaining);
             matrixStack.pushPose();
             matrixStack.scale(0.5f, 0.5f, 1.0f);
             int timeWidth = font.width(timeText);
-            font.drawShadow(matrixStack, timeText,
-                    (x + (BAR_WIDTH - timeWidth * 0.5f) / 2) / 0.5f,
-                    (y + BAR_HEIGHT + 2) / 0.5f, 0x888888);
+            float timeDrawX = (x + (BAR_WIDTH - (int)(timeWidth * 0.5f)) / 2f) / 0.5f;
+            float timeDrawY = (y + BAR_HEIGHT + 2) / 0.5f;
+            font.drawShadow(matrixStack, timeText, timeDrawX, timeDrawY, 0x888888);
             matrixStack.popPose();
 
-            index++;
+            // Passe à la ligne suivante (pile verticalement)
+            y += BAR_HEIGHT + VERTICAL_SPACING;
         }
     }
 
