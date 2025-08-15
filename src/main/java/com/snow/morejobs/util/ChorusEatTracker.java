@@ -35,7 +35,7 @@ public class ChorusEatTracker {
             if (!data.hasJob(JobType.ALIEN)) {
                 data.addJob(JobType.ALIEN);
                 data.save();
-                player.sendMessage(new StringTextComponent("👽 Nouveau métier secret débloqué : §e" + JobType.ALIEN.getDisplayName()), uuid);
+                player.sendMessage(new StringTextComponent("Nouveau métier secret débloqué : §e" + JobType.ALIEN.getDisplayName()), uuid);
             }
         }
     }

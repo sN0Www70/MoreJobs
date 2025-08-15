@@ -11,8 +11,11 @@ import com.snow.morejobs.jobs.JobType;
 import com.snow.morejobs.network.NetworkHandler;
 import com.snow.morejobs.skills.MadScientistSkills;
 import com.snow.morejobs.util.EconomyUtils;
+import com.snow.morejobs.handler.LightningStrikeTracker;
+import com.snow.morejobs.handler.RitualKillTracker;
+import com.snow.morejobs.handler.ChorusEatTracker;
 
-// Nouveau système de banque
+
 import com.snow.morejobs.blocks.BankChestBlock;
 import com.snow.morejobs.tileentity.BankChestTileEntity;
 import com.snow.morejobs.container.BankChestContainer;
@@ -94,6 +97,11 @@ public class MoreJobsMod {
         MinecraftForge.EVENT_BUS.addListener(this::onCommandRegister);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
         MinecraftForge.EVENT_BUS.addListener(this::onWorldTick);
+
+        // Ajout explicite du tracker de foudre
+        MinecraftForge.EVENT_BUS.register(LightningStrikeTracker.class);
+        MinecraftForge.EVENT_BUS.register(ChorusEatTracker.class);
+        MinecraftForge.EVENT_BUS.register(RitualKillTracker.class);
     }
 
     private void setup(FMLCommonSetupEvent event) {
