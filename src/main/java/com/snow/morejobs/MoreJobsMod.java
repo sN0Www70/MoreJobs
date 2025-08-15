@@ -146,20 +146,31 @@ public class MoreJobsMod {
         if (event.phase != TickEvent.Phase.END) return;
 
         salaryTimer++;
-        if (salaryTimer >= 12000) { // ~10 minutes IRL (20 t/s)
+        if (salaryTimer >= 12000) { // ~10 minutes IRL (20 ticks par seconde)
             salaryTimer = 0;
+
             for (ServerPlayerEntity player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
                 JobDataStorage data = JobDataStorage.get(player);
+
                 for (String jobName : data.getActiveJobs()) {
                     JobType job = JobType.fromName(jobName);
+
                     int salary = job.getSalary();
                     if (salary > 0) {
                         EconomyUtils.giveMoney(player, salary);
                         player.sendMessage(
-                                new StringTextComponent("💰 Salaire : +" + salary + " Chelous pour le métier de " + job.getDisplayName()),
+                                new StringTextComponent("Salaire : +" + salary + " Chelous pour le métier de " + job.getDisplayName()),
                                 player.getUUID()
                         );
                     }
+
+                    int xpGain = 10;
+                    data.addXp(job, xpGain);
+                    data.save();
+                    player.sendMessage(
+                            new StringTextComponent("Expérience : +" + xpGain + " XP pour le métier de " + job.getDisplayName()),
+                            player.getUUID()
+                    );
                 }
             }
         }

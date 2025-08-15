@@ -7,6 +7,6 @@
     "south": "morejobs:block/bank_chest_side",
     "west": "morejobs:block/bank_chest_side",
     "east": "morejobs:block/bank_chest_side",
-    "particle": "morejobs:block/bank_chest_sides"
+    "particle": "morejobs:block/bank_chest_side"
   }
 }
