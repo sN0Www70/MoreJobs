@@ -34,7 +34,7 @@ public class BankChestTileEntity extends TileEntity implements ITickableTileEnti
 
     private double interestRate = 0.0;
     private int tickCounter = 0;
-    private static final int INTEREST_INTERVAL = 36000; // 30 minutes
+    private static final int INTEREST_INTERVAL = 36000; // 30 minutes (20 ticks/sec * 60 * 30)
     private static final String CHELOU_ITEM_ID = "cheloucoin:chelou";
 
     private double pendingAmount = 0.0; // Pour garder les intérêts décimaux en attente
@@ -58,28 +58,20 @@ public class BankChestTileEntity extends TileEntity implements ITickableTileEnti
     private void applyInterest() {
         if (interestRate <= 0) return;
 
-        ItemStack stack = itemHandler.getStackInSlot(0);
-        if (stack.isEmpty()) return;
+        int totalItems = getTotalItemCount();
+        if (totalItems == 0) return;
 
-        String itemId = stack.getItem().getRegistryName().toString();
-        if (!CHELOU_ITEM_ID.equals(itemId)) return;
-
-        int currentCount = stack.getCount();
-        double exactTotal = currentCount + pendingAmount;
-
+        double exactTotal = totalItems + pendingAmount;
         double interest = exactTotal * (interestRate / 100.0);
         pendingAmount += interest;
 
         int wholeToAdd = (int) pendingAmount;
         if (wholeToAdd > 0) {
-            int newCount = Math.min(currentCount + wholeToAdd, 512);
-            int actuallyAdded = newCount - currentCount;
+            // Ajouter les items complets
+            addItemsToSlots(wholeToAdd);
+            pendingAmount -= wholeToAdd;
 
-            pendingAmount -= actuallyAdded;
-
-            stack.setCount(newCount);
             setChanged();
-
             if (level != null) {
                 BlockState state = level.getBlockState(worldPosition);
                 level.sendBlockUpdated(worldPosition, state, state, 3);
@@ -87,11 +79,51 @@ public class BankChestTileEntity extends TileEntity implements ITickableTileEnti
         }
     }
 
+    private void addItemsToSlots(int amount) {
+        int remaining = amount;
+
+        for (int i = 0; i < 9 && remaining > 0; i++) {
+            ItemStack stack = itemHandler.getStackInSlot(i);
+
+            if (stack.isEmpty()) {
+                // Slot vide - créer un nouveau stack
+                ItemStack newStack = new ItemStack(net.minecraft.item.Items.EMERALD, Math.min(remaining, 64)); // Remplace par chelou
+                if (findChelouItem() != null) {
+                    newStack = new ItemStack(findChelouItem(), Math.min(remaining, 64));
+                }
+                itemHandler.setStackInSlot(i, newStack);
+                remaining -= newStack.getCount();
+            } else if (stack.getItem().getRegistryName().toString().equals(CHELOU_ITEM_ID)) {
+                // Slot avec des chelous - ajouter
+                int canAdd = Math.min(remaining, 64 - stack.getCount());
+                if (canAdd > 0) {
+                    stack.setCount(stack.getCount() + canAdd);
+                    remaining -= canAdd;
+                }
+            }
+        }
+    }
+
+    private net.minecraft.item.Item findChelouItem() {
+        // Chercher le premier chelou dans les slots pour avoir la référence
+        for (int i = 0; i < 9; i++) {
+            ItemStack stack = itemHandler.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.getItem().getRegistryName().toString().equals(CHELOU_ITEM_ID)) {
+                return stack.getItem();
+            }
+        }
+        return null;
+    }
+
     private ItemStackHandler createHandler() {
-        return new ItemStackHandler(1) {
+        return new ItemStackHandler(9) {
             @Override
             protected void onContentsChanged(int slot) {
                 setChanged();
+                if (level != null && !level.isClientSide) {
+                    BlockState state = level.getBlockState(worldPosition);
+                    level.sendBlockUpdated(worldPosition, state, state, 3);
+                }
             }
 
             @Override
@@ -99,12 +131,15 @@ public class BankChestTileEntity extends TileEntity implements ITickableTileEnti
                 String itemId = stack.getItem().getRegistryName().toString();
                 return CHELOU_ITEM_ID.equals(itemId);
             }
-
-            @Override
-            public int getSlotLimit(int slot) {
-                return 512;
-            }
         };
+    }
+
+    public int getTotalItemCount() {
+        int total = 0;
+        for (int i = 0; i < 9; i++) {
+            total += itemHandler.getStackInSlot(i).getCount();
+        }
+        return total;
     }
 
     @Nonnull
@@ -141,8 +176,16 @@ public class BankChestTileEntity extends TileEntity implements ITickableTileEnti
     }
 
     @Override
+    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
+        load(state, tag);
+    }
+
+    @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        load(getBlockState(), pkt.getTag());
+        CompoundNBT tag = pkt.getTag();
+        if (tag != null) {
+            load(getBlockState(), tag);
+        }
     }
 
     @Override
@@ -166,6 +209,10 @@ public class BankChestTileEntity extends TileEntity implements ITickableTileEnti
     public void setInterestRate(double rate) {
         this.interestRate = Math.max(0, Math.min(rate, 100));
         setChanged();
+        if (level != null && !level.isClientSide) {
+            BlockState state = level.getBlockState(worldPosition);
+            level.sendBlockUpdated(worldPosition, state, state, 3);
+        }
     }
 
     public ItemStackHandler getItemHandler() {

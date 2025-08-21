@@ -31,11 +31,20 @@ public class InterestRatePacket {
     public boolean handle(Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
         context.enqueueWork(() -> {
-            // Traitement côté serveur
             if (context.getSender() != null) {
                 TileEntity tileEntity = context.getSender().level.getBlockEntity(pos);
                 if (tileEntity instanceof BankChestTileEntity) {
-                    ((BankChestTileEntity) tileEntity).setInterestRate(interestRate);
+                    BankChestTileEntity bankTile = (BankChestTileEntity) tileEntity;
+                    bankTile.setInterestRate(interestRate);
+
+                    System.out.println("[InterestRatePacket] Setting interest rate to: " + interestRate);
+
+                    // Force la sauvegarde ET la synchronisation client
+                    bankTile.setChanged();
+                    context.getSender().level.sendBlockUpdated(pos,
+                            bankTile.getBlockState(),
+                            bankTile.getBlockState(),
+                            3);
                 }
             }
         });

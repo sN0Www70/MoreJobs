@@ -17,16 +17,17 @@ public class BankChestContainer extends Container {
 
     private final BankChestTileEntity tileEntity;
     private final PlayerEntity playerEntity;
+    private final IItemHandler itemHandler;
 
     public BankChestContainer(int windowId, PlayerInventory playerInventory, BankChestTileEntity tileEntity) {
         super(MoreJobsMod.BANK_CHEST_CONTAINER.get(), windowId);
         this.tileEntity = tileEntity;
         this.playerEntity = playerInventory.player;
+        this.itemHandler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
 
-        // Slot du coffre (centre de l'interface)
-        IItemHandler itemHandler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
-        if (itemHandler != null) {
-            addSlot(new SlotItemHandler(itemHandler, 0, 80, 32));
+        // 9 slots pour le coffre (ligne horizontale sous le titre)
+        for (int i = 0; i < 9; i++) {
+            addSlot(new SlotItemHandler(itemHandler, i, 8 + i * 18, 18));
         }
 
         // Inventaire du joueur
@@ -69,14 +70,19 @@ public class BankChestContainer extends Container {
             ItemStack itemStack1 = slot.getItem();
             itemStack = itemStack1.copy();
 
-            if (index < 1) {
+            if (index < 9) {
                 // Du coffre vers l'inventaire
-                if (!this.moveItemStackTo(itemStack1, 1, this.slots.size(), true)) {
+                if (!this.moveItemStackTo(itemStack1, 9, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
             } else {
-                // De l'inventaire vers le coffre
-                if (!this.moveItemStackTo(itemStack1, 0, 1, false)) {
+                // De l'inventaire vers le coffre - vérifier que c'est un chelou
+                String itemId = itemStack1.getItem().getRegistryName().toString();
+                if ("cheloucoin:chelou".equals(itemId)) {
+                    if (!this.moveItemStackTo(itemStack1, 0, 9, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else {
                     return ItemStack.EMPTY;
                 }
             }

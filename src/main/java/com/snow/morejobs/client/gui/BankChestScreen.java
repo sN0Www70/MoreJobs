@@ -21,6 +21,7 @@ public class BankChestScreen extends ContainerScreen<BankChestContainer> {
 
     private TextFieldWidget interestField;
     private Button validateButton;
+    private double lastKnownRate = -1;
 
     public BankChestScreen(BankChestContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
@@ -33,19 +34,21 @@ public class BankChestScreen extends ContainerScreen<BankChestContainer> {
     protected void init() {
         super.init();
 
-        int slotY = this.topPos + 32;
-        int fieldX = this.leftPos + 10;
-        int buttonX = this.leftPos + 110;
+        int fieldX = this.leftPos + 8;
+        int fieldY = this.topPos + 48;
 
-        // Champ de texte
-        interestField = new TextFieldWidget(this.font, fieldX, slotY, 60, 20, new StringTextComponent("Interest Rate"));
+        interestField = new TextFieldWidget(this.font, fieldX, fieldY, 60, 20, new StringTextComponent("Interest Rate"));
         interestField.setMaxLength(5);
-        interestField.setValue(String.format("%.2f", menu.getTileEntity().getInterestRate()));
+        double currentRate = menu.getTileEntity().getInterestRate();
+        interestField.setValue(String.format("%.2f", currentRate));
+        lastKnownRate = currentRate;
         this.children.add(interestField);
         this.setInitialFocus(interestField);
 
-        // Bouton
-        validateButton = new Button(buttonX, slotY, 50, 20, new StringTextComponent("Valider"),
+        // Bouton parfaitement aligné avec bord droit (170)
+        int buttonX = this.leftPos + 120; // 170 - 50
+        int buttonY = this.topPos + 39;
+        validateButton = new Button(buttonX, buttonY, 50, 20, new StringTextComponent("Valider"),
                 button -> validateInterestRate());
         this.addButton(validateButton);
     }
@@ -55,7 +58,8 @@ public class BankChestScreen extends ContainerScreen<BankChestContainer> {
             double rate = Double.parseDouble(interestField.getValue().replace(',', '.'));
             if (rate >= 0 && rate <= 100) {
                 ModNetworking.INSTANCE.sendToServer(new InterestRatePacket(menu.getTileEntity().getBlockPos(), rate));
-                menu.getTileEntity().setInterestRate(rate);
+            } else {
+                interestField.setValue(String.format("%.2f", menu.getTileEntity().getInterestRate()));
             }
         } catch (NumberFormatException e) {
             interestField.setValue(String.format("%.2f", menu.getTileEntity().getInterestRate()));
@@ -66,6 +70,14 @@ public class BankChestScreen extends ContainerScreen<BankChestContainer> {
     public void tick() {
         super.tick();
         interestField.tick();
+
+        double currentRate = menu.getTileEntity().getInterestRate();
+        if (Math.abs(currentRate - lastKnownRate) > 0.001) {
+            if (!interestField.isFocused()) {
+                interestField.setValue(String.format("%.2f", currentRate));
+            }
+            lastKnownRate = currentRate;
+        }
     }
 
     @Override
@@ -115,14 +127,23 @@ public class BankChestScreen extends ContainerScreen<BankChestContainer> {
 
         this.font.draw(matrixStack, this.title.getString(), 8.0f, 6.0f, 4210752);
 
-        // Position des textes en dessous des éléments
-        int textY = 32 + 22; // ligne sous le slot
-        this.font.draw(matrixStack, "Taux d'intérêt (%)", 10, textY, 4210752);
+        // Ligne supérieure (titre gauche)
+        this.font.draw(matrixStack, "Taux d'intérêt (%)", 8, 39, 4210752);
 
+        // Ligne inférieure (champ actuel à droite sous le bouton)
         double currentRate = menu.getTileEntity().getInterestRate();
-        String rateText = String.format("%.2f%%", currentRate);
-        this.font.draw(matrixStack, "Actuel:", 110, textY, 4210752);
-        this.font.draw(matrixStack, rateText, 110, textY + 10, 4210752); // une ligne en dessous
+        String rateText = String.format("Actuel: %.2f%%", currentRate);
+        int rateTextWidth = this.font.width(rateText);
+        int actualTextX = 170 - rateTextWidth;
+        int actualTextY = 60; // juste sous le bouton Valider
+        this.font.draw(matrixStack, rateText, actualTextX, actualTextY, 4210752);
+
+        int totalItems = menu.getTileEntity().getTotalItemCount();
+        if (totalItems > 0) {
+            String itemCountText = "Items: " + totalItems;
+            int itemTextWidth = this.font.width(itemCountText);
+            this.font.draw(matrixStack, itemCountText, 170 - itemTextWidth, 72, 4210752);
+        }
     }
 
     @Override

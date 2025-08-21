@@ -154,7 +154,7 @@ public class MoreJobsMod {
         if (event.phase != TickEvent.Phase.END) return;
 
         salaryTimer++;
-        if (salaryTimer >= 12000) { // ~10 minutes IRL (20 ticks par seconde)
+        if (salaryTimer >= 144000) { // ~1h IRL
             salaryTimer = 0;
 
             for (ServerPlayerEntity player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {

@@ -3,13 +3,11 @@ package com.snow.morejobs.blocks;
 import com.snow.morejobs.tileentity.BankChestTileEntity;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
@@ -43,14 +41,7 @@ public class BankChestBlock extends Block {
 
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection());
-    }
-
-    @Override
-    public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity placer, net.minecraft.item.ItemStack stack) {
-        if (placer != null) {
-            world.setBlock(pos, state.setValue(FACING, placer.getDirection().getOpposite()), 2);
-        }
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
@@ -80,4 +71,12 @@ public class BankChestBlock extends Block {
             super.onRemove(state, world, pos, newState, isMoving);
         }
     }
+
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @javax.annotation.Nullable net.minecraft.entity.LivingEntity placer, net.minecraft.item.ItemStack stack) {
+        TileEntity tileEntity = worldIn.getBlockEntity(pos);
+        if (tileEntity instanceof BankChestTileEntity && stack.hasTag() && stack.getTag().contains("BlockEntityTag")) {
+            ((BankChestTileEntity) tileEntity).load(state, stack.getTag().getCompound("BlockEntityTag"));
+        }
+    }
+
 }

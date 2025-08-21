@@ -15,7 +15,6 @@ public enum JobType {
     ARCHITECT("architect", "Architecte", false, "architecte"),
     BARTENDER("bartender", "Barman", false, "barman"),
     STYLIST("stylist", "Styliste", false, "styliste"),
-    PUBLICIST("publicist", "Publiciste", false, "publiciste"),
     URBANIST("urbanist", "Urbaniste", false, "urbaniste"),
     BANKER("banker", "Banquier", false, "banquier"),
 
@@ -84,7 +83,6 @@ public enum JobType {
             case JUDGE: return 8;
             case THERAPIST: return 5;
             case STYLIST: return 5;
-            case PUBLICIST: return 5;
             case URBANIST: return 6;
             case BANKER: return 5;
             case ALIEN:

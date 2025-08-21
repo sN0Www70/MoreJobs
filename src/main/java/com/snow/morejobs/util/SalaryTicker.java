@@ -15,7 +15,7 @@ import java.util.UUID;
 public class SalaryTicker {
 
     private static final Map<UUID, Integer> tickMap = new HashMap<>();
-    private static final int PAY_INTERVAL_TICKS = 20 * 60 * 20;
+    private static final int PAY_INTERVAL_TICKS = 72_000;
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.PlayerTickEvent event) {
